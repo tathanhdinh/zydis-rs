@@ -154,14 +154,13 @@ unsafe fn get_user_data<'a>(user_data: *mut c_void) -> Option<&'a mut dyn Any> {
 macro_rules! wrap_func {
     (general $field_name:ident, $func_name:ident) => {
         unsafe extern "C" fn $func_name(
-            formatter: *const ZydisFormatter,
-            buffer: *mut FormatterBuffer,
-            ctx: *mut FormatterContext,
+            formatter: &ZydisFormatter,
+            buffer: &mut FormatterBuffer,
+            ctx: &mut FormatterContext,
         ) -> Status {
-            let formatter = &*(formatter as *const Formatter);
-            let ctx = &mut *ctx;
+            let formatter = &*(formatter as *const _ as *const Formatter);
             let usr = get_user_data(ctx.user_data);
-            match formatter.$field_name.as_ref().unwrap()(formatter, &mut *buffer, ctx, usr) {
+            match formatter.$field_name.as_ref().unwrap()(formatter, buffer, ctx, usr) {
                 Ok(_) => Status::Success,
                 Err(e) => e,
             }
@@ -169,15 +168,14 @@ macro_rules! wrap_func {
     };
     (register $field_name:ident, $func_name:ident) => {
         unsafe extern "C" fn $func_name(
-            formatter: *const ZydisFormatter,
-            buffer: *mut FormatterBuffer,
-            ctx: *mut FormatterContext,
+            formatter: &ZydisFormatter,
+            buffer: &mut FormatterBuffer,
+            ctx: &mut FormatterContext,
             reg: Register,
         ) -> Status {
-            let formatter = &*(formatter as *const Formatter);
-            let ctx = &mut *ctx;
+            let formatter = &*(formatter as *const _ as *const Formatter);
             let usr = get_user_data(ctx.user_data);
-            match formatter.$field_name.as_ref().unwrap()(formatter, &mut *buffer, ctx, reg, usr) {
+            match formatter.$field_name.as_ref().unwrap()(formatter, buffer, ctx, reg, usr) {
                 Ok(_) => Status::Success,
                 Err(e) => e,
             }
@@ -185,21 +183,14 @@ macro_rules! wrap_func {
     };
     (decorator $field_name:ident, $func_name:ident) => {
         unsafe extern "C" fn $func_name(
-            formatter: *const ZydisFormatter,
-            buffer: *mut FormatterBuffer,
-            ctx: *mut FormatterContext,
+            formatter: &ZydisFormatter,
+            buffer: &mut FormatterBuffer,
+            ctx: &mut FormatterContext,
             decorator: Decorator,
         ) -> Status {
-            let formatter = &*(formatter as *const Formatter);
-            let ctx = &mut *ctx;
+            let formatter = &*(formatter as *const _ as *const Formatter);
             let usr = get_user_data(ctx.user_data);
-            match formatter.$field_name.as_ref().unwrap()(
-                formatter,
-                &mut *buffer,
-                ctx,
-                decorator,
-                usr,
-            ) {
+            match formatter.$field_name.as_ref().unwrap()(formatter, buffer, ctx, decorator, usr) {
                 Ok(_) => Status::Success,
                 Err(e) => e,
             }
